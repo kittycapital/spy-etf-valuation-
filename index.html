@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPY 대비 글로벌 ETF 밸류에이션 | HerdVibe</title>
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="SPY 대비 글로벌 ETF 밸류에이션">
+    <meta property="og:description" content="21개국 ETF vs SPY 52주 Z-Score 기반 상대 밸류에이션 분석">
+    <meta property="og:url" content="https://herdvibe.com/115">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="HerdVibe">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SPY 대비 글로벌 ETF 밸류에이션">
+    <meta name="twitter:description" content="21개국 ETF vs SPY 52주 Z-Score 기반 상대 밸류에이션 분석">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        ::-webkit-scrollbar { display: none; }
+        * { -ms-overflow-style: none; scrollbar-width: none; }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111111;
+            --bg-tertiary: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --text-muted: #555555;
+            --accent-orange: #ff6b35;
+            --accent-blue: #4dabf7;
+            --accent-cyan: #00d4aa;
+            --accent-red: #ff4757;
+            --accent-yellow: #ffd43b;
+            --border-color: #2a2a2a;
+        }
+
+        html, body { overflow-x: hidden; }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 30px 0 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+            color: #ffffff;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .stat-sub {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        /* Chart Card */
+        .chart-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .chart-title-group h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .chart-title-group .subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        /* Legend */
+        .legend-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .legend-line {
+            width: 20px;
+            height: 3px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .legend-bar {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            flex-shrink: 0;
+            opacity: 0.8;
+        }
+
+        /* Chart Containers */
+        .chart-container-price {
+            position: relative;
+            width: 100%;
+            height: 380px;
+        }
+
+        .chart-container-zscore {
+            position: relative;
+            width: 100%;
+            height: 250px;
+        }
+
+        .zoom-reset-btn {
+            z-index: 10; padding: 5px 12px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--border-color);
+            border-radius: 6px; color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px; font-weight: 600; cursor: pointer;
+            transition: all .2s; display: none; flex-shrink: 0; align-self: center;
+        }
+        .zoom-reset-btn:hover { background: rgba(255,255,255,0.15); color: #fff; border-color: var(--accent-cyan); }
+        .zoom-hint { text-align: center; font-size: 10px; color: var(--text-muted); margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
+
+        /* Country Selector */
+        .country-selector {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .country-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-family: 'Noto Sans KR', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .country-btn:hover {
+            background: var(--bg-tertiary);
+            border-color: #3a3a3a;
+            color: var(--text-primary);
+        }
+
+        .country-btn.active {
+            background: var(--bg-tertiary);
+            border-color: var(--accent-cyan);
+            color: var(--text-primary);
+        }
+
+        .country-btn .z-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 1px 5px;
+            border-radius: 3px;
+        }
+
+        .z-tag.under { background: rgba(0,212,170,0.15); color: var(--accent-cyan); }
+        .z-tag.over { background: rgba(255,71,87,0.15); color: var(--accent-red); }
+        .z-tag.neutral { background: rgba(136,136,136,0.1); color: var(--text-muted); }
+
+        /* Region Tabs */
+        .region-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 12px;
+        }
+
+        .region-tab {
+            padding: 5px 14px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .region-tab:hover { border-color: #3a3a3a; color: var(--text-secondary); }
+        .region-tab.active { background: var(--bg-tertiary); border-color: var(--accent-cyan); color: var(--text-primary); }
+
+        /* Ranking Table */
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+        }
+
+        .ranking-table th {
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 500;
+            color: var(--text-muted);
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .ranking-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(42,42,42,0.5);
+            transition: background 0.15s;
+        }
+
+        .ranking-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .ranking-table tr.active td { background: rgba(0,212,170,0.05); }
+        .ranking-table tr { cursor: pointer; }
+
+        .country-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .country-name .flag { font-size: 16px; }
+
+        .country-name .ticker {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .z-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .status-text {
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .alpha-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        /* Share */
+        .share-section {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .share-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-family: 'Noto Sans KR', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .share-btn:hover {
+            background: var(--bg-tertiary);
+            border-color: #3a3a3a;
+            color: var(--text-primary);
+        }
+
+        .share-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+        .share-btn.twitter { color: var(--text-secondary); }
+        .share-btn.twitter:hover { color: #fff; border-color: #555; }
+        .share-btn.telegram { color: #29b6f6; border-color: rgba(41,182,246,0.2); }
+        .share-btn.telegram:hover { background: rgba(41,182,246,0.08); border-color: rgba(41,182,246,0.4); }
+        .share-btn.instagram { color: #e1306c; border-color: rgba(225,48,108,0.2); }
+        .share-btn.instagram:hover { background: rgba(225,48,108,0.08); border-color: rgba(225,48,108,0.4); }
+        .share-btn.kakao { color: #fee500; border-color: rgba(254,229,0,0.2); }
+        .share-btn.kakao:hover { background: rgba(254,229,0,0.08); border-color: rgba(254,229,0,0.4); }
+        .share-btn.copy { color: var(--text-secondary); }
+        .share-btn.copy:hover { color: var(--accent-cyan); border-color: rgba(0,212,170,0.3); }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 30px; left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--bg-tertiary); color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 12px 24px; border-radius: 10px;
+            font-size: 0.8rem; z-index: 9999;
+            opacity: 0; transition: all 0.3s ease;
+            pointer-events: none; white-space: nowrap;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* Loading */
+        .loading-overlay {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            height: 400px; gap: 12px;
+            color: var(--text-muted); font-size: 0.85rem;
+        }
+        .spinner {
+            width: 36px; height: 36px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        /* Methodology */
+        .method-section {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+        .method-section p { margin-top: 8px; }
+        .method-section strong { color: var(--text-primary); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 12px; }
+            .header { padding: 20px 0 15px; margin-bottom: 15px; }
+            .header h1 { font-size: 1.4rem; }
+            .header p { font-size: 0.75rem; }
+            .chart-card { padding: 15px 12px; border-radius: 10px; }
+            .chart-container-price { height: 300px; }
+            .chart-container-zscore { height: 200px; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .stat-card { padding: 12px 8px; }
+            .stat-value { font-size: 1.1rem; }
+            .stat-label { font-size: 0.65rem; }
+            .share-section { gap: 6px; }
+            .share-btn { padding: 8px 12px; font-size: 0.75rem; }
+            .country-btn { padding: 6px 10px; font-size: 0.72rem; }
+            .ranking-table { font-size: 0.72rem; }
+            .ranking-table th, .ranking-table td { padding: 8px 8px; }
+            .hide-mobile { display: none; }
+            .footer { padding: 15px; font-size: 0.65rem; }
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 10px; }
+            .header h1 { font-size: 1.2rem; }
+            .chart-container-price { height: 260px; }
+            .chart-container-zscore { height: 170px; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .stat-value { font-size: 1rem; }
+            .share-section { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+            .share-btn { padding: 8px 4px; font-size: 0.65rem; justify-content: center; }
+            .share-btn svg { width: 12px; height: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🌍 SPY 대비 글로벌 ETF 밸류에이션</h1>
+            <p>21개국 ETF/SPY 52주 롤링 Z-Score · 미국 대비 상대적 저평가/고평가 분석</p>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card">
+                <div class="stat-label">가장 저평가</div>
+                <div class="stat-value" id="statUnder" style="color:var(--accent-cyan)">--</div>
+                <div class="stat-sub" id="statUnderZ">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">가장 고평가</div>
+                <div class="stat-value" id="statOver" style="color:var(--accent-red)">--</div>
+                <div class="stat-sub" id="statOverZ">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">저평가 국가 (Z≤−2)</div>
+                <div class="stat-value" id="statUnderCount" style="color:var(--accent-cyan)">--</div>
+                <div class="stat-sub" id="statUnderList">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">고평가 국가 (Z≥+2)</div>
+                <div class="stat-value" id="statOverCount" style="color:var(--accent-red)">--</div>
+                <div class="stat-sub" id="statOverList">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">선택 국가 Z-Score</div>
+                <div class="stat-value" id="statSelectedZ">--</div>
+                <div class="stat-sub" id="statSelectedLabel">국가를 선택하세요</div>
+            </div>
+        </div>
+
+        <!-- Country Selector -->
+        <div class="region-tabs" id="regionTabs"></div>
+        <div class="country-selector" id="countrySelector"></div>
+
+        <!-- Price Chart -->
+        <div class="chart-card" style="padding-bottom:8px; margin-bottom:0; border-bottom-left-radius:0; border-bottom-right-radius:0; border-bottom:none;">
+            <div class="chart-header">
+                <div class="chart-title-group">
+                    <h2 id="priceTitle">국가 ETF vs SPY 가격 추이</h2>
+                    <div class="subtitle" id="priceSubtitle">주간 리샘플링 · 정규화(100 기준)</div>
+                </div>
+                <button class="zoom-reset-btn" id="zoomResetBtn" onclick="resetZoom()">↺ Reset Zoom</button>
+                <div class="legend-row">
+                    <div class="legend-item">
+                        <span class="legend-line" style="background:var(--accent-cyan)"></span>
+                        <span id="legendETF">ETF</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line" style="background:var(--accent-orange)"></span>
+                        SPY
+                    </div>
+                </div>
+            </div>
+            <div class="chart-container-price" id="chartWrap">
+                <div class="loading-overlay" id="loading">
+                    <div class="spinner"></div>
+                    데이터 로딩 중...
+                </div>
+                <canvas id="priceChart" style="display:none"></canvas>
+            </div>
+        </div>
+
+        <!-- Z-Score Chart -->
+        <div class="chart-card" style="padding-top:0; border-top-left-radius:0; border-top-right-radius:0; border-top:none;">
+            <div class="chart-header" style="margin-bottom:8px;">
+                <div class="chart-title-group">
+                    <div class="subtitle" id="zscoreSubtitle">52주 Z-Score · SPY 대비 저평가 / 고평가</div>
+                </div>
+                <div class="legend-row">
+                    <div class="legend-item">
+                        <span class="legend-bar" style="background:var(--accent-blue)"></span>Z-Score
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-bar" style="background:rgba(0,212,170,0.25); border:1px solid rgba(0,212,170,0.4)"></span>저평가
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-bar" style="background:rgba(255,71,87,0.25); border:1px solid rgba(255,71,87,0.4)"></span>고평가
+                    </div>
+                </div>
+            </div>
+            <div class="chart-container-zscore">
+                <canvas id="zscoreChart"></canvas>
+            </div>
+            <div class="zoom-hint">마우스 휠로 줌 · 드래그로 이동 · 모바일: 핀치 줌</div>
+        </div>
+
+        <!-- Ranking Table -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="chart-title-group">
+                    <h2>📊 전체 밸류에이션 랭킹</h2>
+                    <div class="subtitle">Z-Score 오름차순 · 저평가 → 고평가</div>
+                </div>
+            </div>
+            <table class="ranking-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>국가</th>
+                        <th>Z-Score</th>
+                        <th>상태</th>
+                        <th class="hide-mobile">저평가 매수 알파</th>
+                        <th class="hide-mobile">승률</th>
+                        <th class="hide-mobile">지역</th>
+                    </tr>
+                </thead>
+                <tbody id="rankBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Methodology -->
+        <div class="chart-card method-section">
+            <div class="chart-title-group" style="margin-bottom:8px;">
+                <h2>📖 분석 방법론</h2>
+            </div>
+            <p><strong>Z-Score 계산:</strong> 각 국가 ETF 종가를 SPY 종가로 나눈 비율(Ratio)에 대해 252거래일(52주) 롤링 평균·표준편차를 구하여 Z-Score를 산출합니다.</p>
+            <p><strong>해석:</strong> Z ≤ −2σ → 해당 국가가 미국 대비 최근 1년간 역사적으로 매우 저평가. Z ≥ +2σ → 고평가.</p>
+            <p><strong>환율 효과:</strong> ETF는 달러 표시이므로 주식시장 밸류에이션 + 통화 강약이 동시에 반영됩니다.</p>
+            <p><strong>백테스트:</strong> Z ≤ −2σ 시점에 ETF 매수 → 126거래일(~6개월) 보유 후 SPY 대비 초과수익(Alpha) 측정.</p>
+            <p style="margin-top:12px; color:var(--text-muted); font-size:0.72rem;">⚠️ 본 자료는 정보 제공 목적으로만 작성되었으며 투자 자문이 아닙니다. 과거 성과가 미래 수익을 보장하지 않습니다.</p>
+        </div>
+
+        <!-- Share -->
+        <div class="share-section">
+            <button class="share-btn twitter" onclick="doShare('twitter')">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                트위터
+            </button>
+            <button class="share-btn telegram" onclick="doShare('telegram')">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                텔레그램
+            </button>
+            <button class="share-btn kakao" onclick="doShare('kakao')">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.477 3 2 6.463 2 10.691c0 2.724 1.8 5.116 4.508 6.482-.144.525-.925 3.388-.958 3.603 0 0-.02.157.083.217.103.06.224.013.224.013.296-.041 3.434-2.263 3.973-2.652.703.098 1.428.15 2.17.15 5.523 0 10-3.463 10-7.813C22 6.463 17.523 3 12 3z"/></svg>
+                카카오톡
+            </button>
+            <button class="share-btn instagram" onclick="doShare('instagram')">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                인스타그램
+            </button>
+            <button class="share-btn copy" onclick="doShare('copy')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                링크복사
+            </button>
+        </div>
+
+        <div class="toast" id="toast"></div>
+
+        <footer class="footer">
+            데이터 출처: Yahoo Finance | 매일 자동 업데이트 | HerdVibe
+        </footer>
+    </div>
+
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"></script>
+    <script>
+        try { Kakao.init('a43ed7b39fac35458f4f9df925a279b5'); } catch(e) {}
+    </script>
+    <script>
+        // ─── CONSTANTS ───
+        const SHARE_URL = 'https://herdvibe.com/115';
+        const ZSCORE_WINDOW = 252;
+
+        const COUNTRIES = {
+            EPI:['인도','🇮🇳','아시아'], EWA:['호주','🇦🇺','아시아'], EWC:['캐나다','🇨🇦','아메리카'],
+            EWD:['스웨덴','🇸🇪','유럽'], EWG:['독일','🇩🇪','유럽'], EWH:['홍콩','🇭🇰','아시아'],
+            EWI:['이탈리아','🇮🇹','유럽'], EWJ:['일본','🇯🇵','아시아'], EWL:['스위스','🇨🇭','유럽'],
+            EWN:['네덜란드','🇳🇱','유럽'], EWP:['스페인','🇪🇸','유럽'], EWQ:['프랑스','🇫🇷','유럽'],
+            EWS:['싱가포르','🇸🇬','아시아'], EWT:['대만','🇹🇼','아시아'], EWU:['영국','🇬🇧','유럽'],
+            EWW:['멕시코','🇲🇽','아메리카'], EWY:['한국','🇰🇷','아시아'], EWZ:['브라질','🇧🇷','아메리카'],
+            EZA:['남아공','🇿🇦','기타'], FXI:['중국','🇨🇳','아시아'], THD:['태국','🇹🇭','아시아']
+        };
+
+        let rankings = [];
+        let selectedTicker = null;
+        let regionFilter = 'all';
+        let chartDataCache = {};
+
+        // ─── DATA LOADING ───
+        async function loadCSV(filename) {
+            try {
+                const resp = await fetch('data/' + filename);
+                const text = await resp.text();
+                const lines = text.trim().replace(/\r/g, '').split('\n');
+                const headers = lines[0].split(',');
+                const data = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const parts = lines[i].split(',');
+                    if (parts.length >= 2) {
+                        const row = {};
+                        headers.forEach((h, idx) => { row[h.trim()] = parts[idx]; });
+                        data.push(row);
+                    }
+                }
+                return data;
+            } catch(e) {
+                console.error('Failed to load ' + filename, e);
+                return [];
+            }
+        }
+
+        async function loadRankings() {
+            const rows = await loadCSV('current_rankings.csv');
+            rankings = rows.map(r => ({
+                ticker: r.ticker,
+                name: r.name,
+                flag: r.flag,
+                region: r.region,
+                zscore: parseFloat(r.zscore),
+                ratio: parseFloat(r.ratio),
+                date: r.date,
+                alpha: r.alpha !== undefined ? parseFloat(r.alpha) : null,
+                winrate: r.winrate !== undefined ? parseFloat(r.winrate) : null,
+            }));
+            rankings.sort((a, b) => a.zscore - b.zscore);
+            return rankings;
+        }
+
+        async function loadCountryData(ticker) {
+            if (chartDataCache[ticker]) return chartDataCache[ticker];
+            const rows = await loadCSV(ticker + '_vs_SPY.csv');
+            const data = rows.map(r => ({
+                date: new Date(r.Date || r.date),
+                etf: parseFloat(r.etf),
+                spy: parseFloat(r.spy),
+                ratio: parseFloat(r.ratio),
+                zscore: parseFloat(r.zscore)
+            })).filter(d => !isNaN(d.zscore));
+            chartDataCache[ticker] = data;
+            return data;
+        }
+
+        // ─── WEEKLY RESAMPLE ───
+        function toWeekly(data) {
+            if (data.length === 0) return [];
+            const weekly = [];
+            let weekStart = null, weekData = [];
+            data.forEach(d => {
+                const wk = new Date(d.date);
+                wk.setDate(wk.getDate() - wk.getDay());
+                const key = wk.toISOString().slice(0, 10);
+                if (weekStart !== key) {
+                    if (weekData.length > 0) weekly.push(weekData[weekData.length - 1]);
+                    weekStart = key;
+                    weekData = [d];
+                } else { weekData.push(d); }
+            });
+            if (weekData.length > 0) weekly.push(weekData[weekData.length - 1]);
+            return weekly;
+        }
+
+        // ─── RENDER STATS ───
+        function renderStats() {
+            if (rankings.length === 0) return;
+            const under = rankings.filter(r => r.zscore <= -2);
+            const over = rankings.filter(r => r.zscore >= 2);
+            const most_u = rankings[0];
+            const most_o = rankings[rankings.length - 1];
+
+            document.getElementById('statUnder').textContent = most_u.flag + ' ' + most_u.name;
+            document.getElementById('statUnderZ').textContent = 'Z: ' + (most_u.zscore > 0 ? '+' : '') + most_u.zscore.toFixed(2) + 'σ';
+
+            document.getElementById('statOver').textContent = most_o.flag + ' ' + most_o.name;
+            document.getElementById('statOverZ').textContent = 'Z: +' + most_o.zscore.toFixed(2) + 'σ';
+
+            document.getElementById('statUnderCount').textContent = under.length + '개국';
+            document.getElementById('statUnderList').textContent = under.length > 0 ? under.map(r => r.flag + r.name).join(' ') : '없음';
+
+            document.getElementById('statOverCount').textContent = over.length + '개국';
+            document.getElementById('statOverList').textContent = over.length + '/' + rankings.length + '개국';
+        }
+
+        // ─── RENDER COUNTRY SELECTOR ───
+        function renderRegionTabs() {
+            const regions = ['all', '아시아', '유럽', '아메리카', '기타'];
+            const labels = { all: '전체', 아시아: '🌏 아시아', 유럽: '🇪🇺 유럽', 아메리카: '🌎 아메리카', 기타: '기타' };
+            document.getElementById('regionTabs').innerHTML = regions.map(r =>
+                '<button class="region-tab' + (r === regionFilter ? ' active' : '') + '" onclick="setRegion(\'' + r + '\')">' + labels[r] + '</button>'
+            ).join('');
+        }
+
+        function setRegion(r) {
+            regionFilter = r;
+            renderRegionTabs();
+            renderCountrySelector();
+        }
+
+        function renderCountrySelector() {
+            const filtered = regionFilter === 'all' ? rankings : rankings.filter(r => r.region === regionFilter);
+            document.getElementById('countrySelector').innerHTML = filtered.map(r => {
+                const zClass = r.zscore <= -2 ? 'under' : r.zscore >= 2 ? 'over' : 'neutral';
+                return '<button class="country-btn' + (r.ticker === selectedTicker ? ' active' : '') +
+                    '" onclick="selectCountry(\'' + r.ticker + '\')">' +
+                    r.flag + ' ' + r.name +
+                    ' <span class="z-tag ' + zClass + '">' + (r.zscore > 0 ? '+' : '') + r.zscore.toFixed(1) + 'σ</span></button>';
+            }).join('');
+        }
+
+        // ─── RENDER TABLE ───
+        function renderTable() {
+            const tbody = document.getElementById('rankBody');
+            tbody.innerHTML = rankings.map((r, i) => {
+                const zColor = r.zscore <= -2 ? 'var(--accent-cyan)' : r.zscore <= -1 ? 'var(--accent-yellow)' : r.zscore >= 2 ? 'var(--accent-red)' : r.zscore >= 1 ? 'var(--accent-orange)' : 'var(--text-muted)';
+                const status = r.zscore <= -2 ? '강한 저평가' : r.zscore <= -1 ? '약한 저평가' : r.zscore >= 2 ? '강한 고평가' : r.zscore >= 1 ? '약한 고평가' : '적정가';
+                const statusColor = r.zscore <= -2 ? 'var(--accent-cyan)' : r.zscore >= 2 ? 'var(--accent-red)' : 'var(--text-muted)';
+                const alphaStr = r.alpha !== null ? (r.alpha > 0 ? '+' : '') + r.alpha.toFixed(1) + '%' : '-';
+                const alphaColor = r.alpha > 0 ? 'var(--accent-cyan)' : r.alpha < 0 ? 'var(--accent-red)' : 'var(--text-muted)';
+                const wrStr = r.winrate !== null ? r.winrate.toFixed(0) + '%' : '-';
+                const wrColor = r.winrate >= 50 ? 'var(--accent-cyan)' : r.winrate >= 40 ? 'var(--accent-yellow)' : 'var(--accent-red)';
+
+                return '<tr class="' + (r.ticker === selectedTicker ? 'active' : '') + '" onclick="selectCountry(\'' + r.ticker + '\')">' +
+                    '<td style="color:var(--text-muted);font-family:JetBrains Mono,monospace">' + (i + 1) + '</td>' +
+                    '<td><div class="country-name"><span class="flag">' + r.flag + '</span>' + r.name + '<span class="ticker">' + r.ticker + '</span></div></td>' +
+                    '<td><span class="z-val" style="color:' + zColor + '">' + (r.zscore > 0 ? '+' : '') + r.zscore.toFixed(2) + 'σ</span></td>' +
+                    '<td><span class="status-text" style="color:' + statusColor + '">' + status + '</span></td>' +
+                    '<td class="hide-mobile"><span class="alpha-val" style="color:' + alphaColor + '">' + alphaStr + '</span></td>' +
+                    '<td class="hide-mobile"><span class="alpha-val" style="color:' + wrColor + '">' + wrStr + '</span></td>' +
+                    '<td class="hide-mobile" style="color:var(--text-muted);font-size:0.7rem">' + r.region + '</td>' +
+                    '</tr>';
+            }).join('');
+        }
+
+        // ─── WATERMARK PLUGIN ───
+        const watermarkPlugin = {
+            id: 'watermark',
+            afterDraw(chart) {
+                const ctx = chart.ctx;
+                const area = chart.chartArea;
+                const w = area.right - area.left;
+                const fontSize = Math.max(16, Math.min(42, w * 0.07));
+                ctx.save();
+                ctx.globalAlpha = 0.07;
+                ctx.font = '700 ' + fontSize + 'px JetBrains Mono';
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Herdvibe.com', (area.left + area.right) / 2, (area.top + area.bottom) / 2);
+                ctx.restore();
+            }
+        };
+
+        // ─── CHARTS ───
+        let _priceChart = null;
+        let _zScoreChart = null;
+
+        async function selectCountry(ticker) {
+            selectedTicker = ticker;
+            renderCountrySelector();
+            renderTable();
+
+            const info = COUNTRIES[ticker];
+            if (!info) return;
+
+            // Update selected stat
+            const r = rankings.find(r => r.ticker === ticker);
+            if (r) {
+                const el = document.getElementById('statSelectedZ');
+                el.textContent = (r.zscore > 0 ? '+' : '') + r.zscore.toFixed(2) + 'σ';
+                el.style.color = r.zscore <= -2 ? 'var(--accent-cyan)' : r.zscore >= 2 ? 'var(--accent-red)' : 'var(--text-primary)';
+                const label = document.getElementById('statSelectedLabel');
+                label.textContent = info[1] + ' ' + info[0] + ' (' + ticker + ')';
+                const status = r.zscore <= -2 ? '저평가' : r.zscore >= 2 ? '고평가' : '중립';
+                label.style.color = r.zscore <= -2 ? 'var(--accent-cyan)' : r.zscore >= 2 ? 'var(--accent-red)' : 'var(--text-secondary)';
+            }
+
+            // Load data
+            const data = await loadCountryData(ticker);
+            if (data.length === 0) return;
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('priceChart').style.display = 'block';
+
+            // Update titles
+            document.getElementById('priceTitle').textContent = info[1] + ' ' + info[0] + ' (' + ticker + ') vs SPY 가격 추이';
+            document.getElementById('legendETF').textContent = ticker + ' (' + info[0] + ')';
+            document.getElementById('zscoreSubtitle').textContent = '52주 Z-Score · ' + info[0] + '(' + ticker + ') SPY 대비 저평가 / 고평가';
+
+            // Weekly resample
+            const weekly = toWeekly(data);
+
+            // Normalize prices (base 100)
+            const baseETF = weekly[0].etf;
+            const baseSPY = weekly[0].spy;
+            const etfNorm = weekly.map(d => ({ x: d.date.getTime(), y: (d.etf / baseETF) * 100 }));
+            const spyNorm = weekly.map(d => ({ x: d.date.getTime(), y: (d.spy / baseSPY) * 100 }));
+
+            // Z-Score bar data (weekly)
+            const zWeekly = toWeekly(data.map(d => ({ date: d.date, price: d.zscore })))
+                .map(d => ({ x: d.date.getTime(), y: d.price }));
+
+            // X-axis range
+            const xMin = weekly[0].date.getTime();
+            const xMax = weekly[weekly.length - 1].date.getTime() + 30 * 86400000;
+
+            const xBase = {
+                type: 'time',
+                time: { unit: 'year', displayFormats: { year: 'yyyy' } },
+                min: xMin, max: xMax,
+                grid: { color: 'rgba(255,255,255,0.04)', drawTicks: false },
+                ticks: { color: '#666', font: { family: 'JetBrains Mono', size: 11 }, maxTicksLimit: 12 },
+                border: { color: 'rgba(255,255,255,0.1)' }
+            };
+
+            // ─── PRICE CHART ───
+            if (_priceChart) _priceChart.destroy();
+            _priceChart = new Chart(document.getElementById('priceChart').getContext('2d'), {
+                type: 'line',
+                plugins: [watermarkPlugin],
+                data: {
+                    datasets: [
+                        {
+                            label: ticker,
+                            data: etfNorm,
+                            borderColor: 'var(--accent-cyan)',
+                            borderWidth: 1.8, pointRadius: 0,
+                            pointHoverRadius: 4, pointHoverBackgroundColor: '#00d4aa',
+                            tension: 0.1, fill: false, order: 1
+                        },
+                        {
+                            label: 'SPY',
+                            data: spyNorm,
+                            borderColor: 'rgba(255,107,53,0.7)',
+                            borderWidth: 1.5, pointRadius: 0,
+                            tension: 0.1, fill: false, order: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(10,10,10,0.95)',
+                            titleColor: '#fff', bodyColor: '#ccc',
+                            borderColor: '#333', borderWidth: 1, padding: 14,
+                            callbacks: {
+                                title: items => items.length ? new Date(items[0].parsed.x).toISOString().slice(0, 10) : '',
+                                label: ctx => ' ' + ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1)
+                            }
+                        },
+                        zoom: {
+                            pan: { enabled: true, mode: 'x', onPanComplete: ctx => syncCharts(ctx.chart, 'price') },
+                            zoom: { wheel: { enabled: true, speed: 0.1 }, pinch: { enabled: true }, mode: 'x', onZoomComplete: ctx => syncCharts(ctx.chart, 'price') },
+                            limits: { x: { min: xMin, max: xMax } }
+                        }
+                    },
+                    scales: {
+                        x: { ...xBase, ticks: { ...xBase.ticks, display: false } },
+                        y: {
+                            type: 'linear', position: 'left',
+                            grid: { color: 'rgba(255,255,255,0.04)', drawTicks: false },
+                            ticks: { color: '#888', font: { family: 'JetBrains Mono', size: 10 } },
+                            title: { display: true, text: '정규화 가격 (100 기준)', color: '#666', font: { family: 'JetBrains Mono', size: 10 } },
+                            border: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                }
+            });
+
+            // ─── Z-SCORE CHART ───
+            if (_zScoreChart) _zScoreChart.destroy();
+
+            // Detect peaks/troughs
+            const cycleAnnotations = detectCycleLabels(zWeekly, 20, 1.5);
+
+            _zScoreChart = new Chart(document.getElementById('zscoreChart').getContext('2d'), {
+                type: 'bar',
+                plugins: [watermarkPlugin],
+                data: {
+                    datasets: [{
+                        label: 'Z-Score',
+                        data: zWeekly,
+                        backgroundColor: zWeekly.map(d =>
+                            d.y >= 2 ? 'rgba(255,71,87,0.8)' :
+                            d.y <= -2 ? 'rgba(0,212,170,0.8)' :
+                            d.y >= 0 ? 'rgba(77,171,247,0.6)' : 'rgba(77,171,247,0.4)'
+                        ),
+                        borderColor: 'transparent',
+                        barPercentage: 1.0, categoryPercentage: 1.0,
+                        barThickness: 'flex', maxBarThickness: 5
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(10,10,10,0.95)',
+                            titleColor: '#fff', bodyColor: '#ccc',
+                            borderColor: '#333', borderWidth: 1, padding: 12,
+                            callbacks: {
+                                title: items => items.length ? new Date(items[0].parsed.x).toISOString().slice(0, 10) : '',
+                                label: ctx => {
+                                    const v = ctx.parsed.y;
+                                    const zone = v >= 2 ? ' (고평가)' : v <= -2 ? ' (저평가)' : '';
+                                    return ' Z-Score: ' + (v >= 0 ? '+' : '') + v.toFixed(2) + 'σ' + zone;
+                                }
+                            }
+                        },
+                        annotation: {
+                            annotations: {
+                                overboughtZone: {
+                                    type: 'box', yMin: 2, yMax: 7,
+                                    backgroundColor: 'rgba(255,71,87,0.05)',
+                                    borderColor: 'rgba(255,71,87,0.15)', borderWidth: 1, borderDash: [3, 3],
+                                    label: {
+                                        display: true, content: '고평가 (SPY 대비)',
+                                        position: { x: 'start', y: 'center' },
+                                        color: 'rgba(255,71,87,0.45)',
+                                        font: { family: 'JetBrains Mono', size: 9, weight: '600' }, padding: 4
+                                    }
+                                },
+                                oversoldZone: {
+                                    type: 'box', yMin: -5.5, yMax: -2,
+                                    backgroundColor: 'rgba(0,212,170,0.05)',
+                                    borderColor: 'rgba(0,212,170,0.15)', borderWidth: 1, borderDash: [3, 3],
+                                    label: {
+                                        display: true, content: '저평가 (SPY 대비)',
+                                        position: { x: 'start', y: 'center' },
+                                        color: 'rgba(0,212,170,0.45)',
+                                        font: { family: 'JetBrains Mono', size: 9, weight: '600' }, padding: 4
+                                    }
+                                },
+                                zeroLine: { type: 'line', yMin: 0, yMax: 0, borderColor: 'rgba(255,255,255,0.15)', borderWidth: 1, borderDash: [4, 4] },
+                                plus2: { type: 'line', yMin: 2, yMax: 2, borderColor: 'rgba(255,71,87,0.2)', borderWidth: 1, borderDash: [2, 4] },
+                                minus2: { type: 'line', yMin: -2, yMax: -2, borderColor: 'rgba(0,212,170,0.2)', borderWidth: 1, borderDash: [2, 4] },
+                                ...cycleAnnotations
+                            }
+                        },
+                        zoom: {
+                            pan: { enabled: true, mode: 'x', onPanComplete: ctx => syncCharts(ctx.chart, 'zscore') },
+                            zoom: { wheel: { enabled: true, speed: 0.1 }, pinch: { enabled: true }, mode: 'x', onZoomComplete: ctx => syncCharts(ctx.chart, 'zscore') },
+                            limits: { x: { min: xMin, max: xMax } }
+                        }
+                    },
+                    scales: {
+                        x: xBase,
+                        y: {
+                            type: 'linear', position: 'left', min: -5.5, max: 7,
+                            grid: { color: 'rgba(255,255,255,0.04)', drawTicks: false },
+                            ticks: {
+                                color: '#888', font: { family: 'JetBrains Mono', size: 10 },
+                                callback: v => Number.isInteger(v) ? (v >= 0 ? '+' : '') + v + 'σ' : '',
+                                stepSize: 1
+                            },
+                            title: { display: true, text: '52주 Z-Score (SPY 대비)', color: '#666', font: { family: 'JetBrains Mono', size: 10 } },
+                            border: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ─── CYCLE LABELS ───
+        function detectCycleLabels(zData, minDist, thresh) {
+            const peaks = [], troughs = [];
+            for (let i = minDist; i < zData.length - Math.floor(minDist / 2); i++) {
+                const val = zData[i].y;
+                let isPeak = true, isTrough = true;
+                const lo = Math.max(0, i - minDist);
+                const hi = Math.min(zData.length - 1, i + minDist);
+                for (let j = lo; j <= hi; j++) {
+                    if (j === i) continue;
+                    if (zData[j].y >= val) isPeak = false;
+                    if (zData[j].y <= val) isTrough = false;
+                }
+                if (isPeak && val > thresh) peaks.push(zData[i]);
+                if (isTrough && val < -thresh) troughs.push(zData[i]);
+            }
+            const all = [
+                ...peaks.map(p => ({ ...p, type: 'peak' })),
+                ...troughs.map(t => ({ ...t, type: 'trough' }))
+            ].sort((a, b) => a.x - b.x);
+            const filtered = [];
+            for (const pt of all) {
+                if (filtered.length === 0 || filtered[filtered.length - 1].type !== pt.type) {
+                    filtered.push(pt);
+                } else {
+                    const last = filtered[filtered.length - 1];
+                    if ((pt.type === 'peak' && pt.y > last.y) || (pt.type === 'trough' && pt.y < last.y)) {
+                        filtered[filtered.length - 1] = pt;
+                    }
+                }
+            }
+            const annotations = {};
+            filtered.forEach((pt, i) => {
+                annotations['cycle_' + i] = {
+                    type: 'label',
+                    xValue: pt.x,
+                    yValue: pt.y + (pt.type === 'peak' ? 0.7 : -0.7),
+                    content: (pt.type === 'peak' ? '▲' : '▼') + ' ' + (pt.y >= 0 ? '+' : '') + pt.y.toFixed(1) + 'σ',
+                    color: pt.type === 'peak' ? 'rgba(255,71,87,0.85)' : 'rgba(0,212,170,0.85)',
+                    font: { family: 'JetBrains Mono', size: 8, weight: '600' },
+                    padding: { left: 3, right: 3, top: 2, bottom: 2 },
+                    backgroundColor: pt.type === 'peak' ? 'rgba(255,71,87,0.1)' : 'rgba(0,212,170,0.1)',
+                    borderRadius: 3
+                };
+            });
+            return annotations;
+        }
+
+        // ─── ZOOM SYNC ───
+        var _syncing = false;
+        function syncCharts(sourceChart, sourceId) {
+            if (_syncing) return;
+            _syncing = true;
+            var xMin = sourceChart.scales.x.min;
+            var xMax = sourceChart.scales.x.max;
+            var target = sourceId === 'price' ? _zScoreChart : _priceChart;
+            if (target) {
+                target.options.scales.x.min = xMin;
+                target.options.scales.x.max = xMax;
+                target.update('none');
+            }
+            var btn = document.getElementById('zoomResetBtn');
+            if (btn) btn.style.display = 'block';
+            _syncing = false;
+        }
+
+        function resetZoom() {
+            if (!selectedTicker || !chartDataCache[selectedTicker]) return;
+            var data = chartDataCache[selectedTicker];
+            var origMin = data[0].date.getTime();
+            var origMax = data[data.length - 1].date.getTime() + 30 * 86400000;
+            [_priceChart, _zScoreChart].forEach(function(c) {
+                if (c) {
+                    c.options.scales.x.min = origMin;
+                    c.options.scales.x.max = origMax;
+                    c.update('none');
+                }
+            });
+            document.getElementById('zoomResetBtn').style.display = 'none';
+        }
+
+        // ─── SHARE ───
+        function openUrl(url) {
+            try {
+                const a = document.createElement('a');
+                a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            } catch(e) { try { window.open(url, '_blank'); } catch(e2) {} }
+        }
+
+        function doCopy(text) {
+            try { window.parent.postMessage({ type: 'clipboard', text: text }, '*'); } catch(e) {}
+            try { if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(text); return; } } catch(e) {}
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = text; ta.setAttribute('readonly', '');
+                ta.style.cssText = 'position:fixed;left:0;top:0;opacity:0;width:1px;height:1px;';
+                document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, ta.value.length);
+                document.execCommand('copy'); document.body.removeChild(ta);
+            } catch(e) { window.prompt('아래 링크를 복사하세요:', text); }
+        }
+
+        function doShare(platform) {
+            const t = 'SPY 대비 글로벌 ETF 밸류에이션 — HerdVibe';
+            switch(platform) {
+                case 'twitter': openUrl('https://twitter.com/intent/tweet?text=' + encodeURIComponent(t) + '&url=' + encodeURIComponent(SHARE_URL)); break;
+                case 'telegram': openUrl('https://t.me/share/url?url=' + encodeURIComponent(SHARE_URL) + '&text=' + encodeURIComponent(t)); break;
+                case 'kakao': kakaoShare(); break;
+                case 'instagram': doCopy(SHARE_URL); openUrl('https://www.instagram.com/'); showToast('링크가 복사되었습니다 — 인스타그램 스토리에 붙여넣기 하세요'); break;
+                case 'copy': doCopy(SHARE_URL); showToast('링크가 복사되었습니다'); break;
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        function kakaoShare() {
+            try {
+                Kakao.Share.sendDefault({
+                    objectType: 'feed',
+                    content: {
+                        title: 'SPY 대비 글로벌 ETF 밸류에이션',
+                        description: '21개국 ETF vs SPY 52주 Z-Score 분석',
+                        imageUrl: '', link: { mobileWebUrl: SHARE_URL, webUrl: SHARE_URL }
+                    },
+                    buttons: [{ title: '차트 보기', link: { mobileWebUrl: SHARE_URL, webUrl: SHARE_URL } }]
+                });
+            } catch(e) { openUrl('https://story.kakao.com/share?url=' + encodeURIComponent(SHARE_URL)); }
+        }
+
+        // ─── INIT ───
+        async function init() {
+            await loadRankings();
+            renderStats();
+            renderRegionTabs();
+            renderCountrySelector();
+            renderTable();
+            // Auto-select most undervalued
+            if (rankings.length > 0) {
+                selectCountry(rankings[0].ticker);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
