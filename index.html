@@ -465,7 +465,7 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1>🌍 SPY 대비 글로벌 ETF 밸류에이션</h1>
+            <h1>SPY 대비 글로벌 ETF 밸류에이션</h1>
             <p>21개국 ETF/SPY 52주 롤링 Z-Score · 미국 대비 상대적 저평가/고평가 분석</p>
         </header>
 
@@ -512,11 +512,11 @@
                 <button class="zoom-reset-btn" id="zoomResetBtn" onclick="resetZoom()">↺ Reset Zoom</button>
                 <div class="legend-row">
                     <div class="legend-item">
-                        <span class="legend-line" style="background:var(--accent-cyan)"></span>
+                        <span class="legend-line" style="background:#4dabf7"></span>
                         <span id="legendETF">ETF</span>
                     </div>
                     <div class="legend-item">
-                        <span class="legend-line" style="background:var(--accent-orange)"></span>
+                        <span class="legend-line" style="background:#ff6b35"></span>
                         SPY
                     </div>
                 </div>
@@ -558,7 +558,7 @@
         <div class="chart-card">
             <div class="chart-header">
                 <div class="chart-title-group">
-                    <h2>📊 전체 밸류에이션 랭킹</h2>
+                    <h2>전체 밸류에이션 랭킹</h2>
                     <div class="subtitle">Z-Score 오름차순 · 저평가 → 고평가</div>
                 </div>
             </div>
@@ -581,13 +581,13 @@
         <!-- Methodology -->
         <div class="chart-card method-section">
             <div class="chart-title-group" style="margin-bottom:8px;">
-                <h2>📖 분석 방법론</h2>
+                <h2>분석 방법론</h2>
             </div>
             <p><strong>Z-Score 계산:</strong> 각 국가 ETF 종가를 SPY 종가로 나눈 비율(Ratio)에 대해 252거래일(52주) 롤링 평균·표준편차를 구하여 Z-Score를 산출합니다.</p>
             <p><strong>해석:</strong> Z ≤ −2σ → 해당 국가가 미국 대비 최근 1년간 역사적으로 매우 저평가. Z ≥ +2σ → 고평가.</p>
             <p><strong>환율 효과:</strong> ETF는 달러 표시이므로 주식시장 밸류에이션 + 통화 강약이 동시에 반영됩니다.</p>
             <p><strong>백테스트:</strong> Z ≤ −2σ 시점에 ETF 매수 → 126거래일(~6개월) 보유 후 SPY 대비 초과수익(Alpha) 측정.</p>
-            <p style="margin-top:12px; color:var(--text-muted); font-size:0.72rem;">⚠️ 본 자료는 정보 제공 목적으로만 작성되었으며 투자 자문이 아닙니다. 과거 성과가 미래 수익을 보장하지 않습니다.</p>
+            <p style="margin-top:12px; color:var(--text-muted); font-size:0.72rem;">본 자료는 정보 제공 목적으로만 작성되었으며 투자 자문이 아닙니다. 과거 성과가 미래 수익을 보장하지 않습니다.</p>
         </div>
 
         <!-- Share -->
@@ -742,7 +742,7 @@
         // ─── RENDER COUNTRY SELECTOR ───
         function renderRegionTabs() {
             const regions = ['all', '아시아', '유럽', '아메리카', '기타'];
-            const labels = { all: '전체', 아시아: '🌏 아시아', 유럽: '🇪🇺 유럽', 아메리카: '🌎 아메리카', 기타: '기타' };
+            const labels = { all: '전체', 아시아: '아시아', 유럽: '유럽', 아메리카: '아메리카', 기타: '기타' };
             document.getElementById('regionTabs').innerHTML = regions.map(r =>
                 '<button class="region-tab' + (r === regionFilter ? ' active' : '') + '" onclick="setRegion(\'' + r + '\')">' + labels[r] + '</button>'
             ).join('');
@@ -880,15 +880,15 @@
                         {
                             label: ticker,
                             data: etfNorm,
-                            borderColor: 'var(--accent-cyan)',
+                            borderColor: '#4dabf7',
                             borderWidth: 1.8, pointRadius: 0,
-                            pointHoverRadius: 4, pointHoverBackgroundColor: '#00d4aa',
+                            pointHoverRadius: 4, pointHoverBackgroundColor: '#4dabf7',
                             tension: 0.1, fill: false, order: 1
                         },
                         {
                             label: 'SPY',
                             data: spyNorm,
-                            borderColor: 'rgba(255,107,53,0.7)',
+                            borderColor: '#ff6b35',
                             borderWidth: 1.5, pointRadius: 0,
                             tension: 0.1, fill: false, order: 2
                         }
