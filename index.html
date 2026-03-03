@@ -130,11 +130,15 @@
 
         .chart-header {
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            justify-content: center;
+            align-items: center;
             margin-bottom: 16px;
             flex-wrap: wrap;
             gap: 12px;
+        }
+
+        .chart-title-group {
+            text-align: center;
         }
 
         .chart-title-group h2 {
@@ -155,6 +159,7 @@
             gap: 16px;
             flex-wrap: wrap;
             align-items: center;
+            justify-content: center;
         }
 
         .legend-item {
@@ -201,7 +206,8 @@
             border-radius: 6px; color: var(--text-secondary);
             font-family: 'JetBrains Mono', monospace;
             font-size: 10px; font-weight: 600; cursor: pointer;
-            transition: all .2s; display: none; flex-shrink: 0; align-self: center;
+            transition: all .2s; display: none;
+            position: absolute; top: 24px; right: 24px;
         }
         .zoom-reset-btn:hover { background: rgba(255,255,255,0.15); color: #fff; border-color: var(--accent-cyan); }
         .zoom-hint { text-align: center; font-size: 10px; color: var(--text-muted); margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
@@ -212,6 +218,7 @@
             gap: 6px;
             flex-wrap: wrap;
             margin-bottom: 20px;
+            justify-content: center;
         }
 
         .country-btn {
@@ -259,6 +266,7 @@
             display: flex;
             gap: 4px;
             margin-bottom: 12px;
+            justify-content: center;
         }
 
         .region-tab {
@@ -423,6 +431,7 @@
             font-size: 0.8rem;
             color: var(--text-secondary);
             line-height: 1.8;
+            text-align: center;
         }
         .method-section p { margin-top: 8px; }
         .method-section strong { color: var(--text-primary); }
@@ -580,7 +589,7 @@
 
         <!-- Methodology -->
         <div class="chart-card method-section">
-            <div class="chart-title-group" style="margin-bottom:8px;">
+            <div class="chart-title-group" style="margin-bottom:8px; text-align:center; width:100%;">
                 <h2>분석 방법론</h2>
             </div>
             <p><strong>Z-Score 계산:</strong> 각 국가 ETF 종가를 SPY 종가로 나눈 비율(Ratio)에 대해 252거래일(52주) 롤링 평균·표준편차를 구하여 Z-Score를 산출합니다.</p>
