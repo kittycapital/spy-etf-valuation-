@@ -210,6 +210,9 @@
             position: absolute; top: 24px; right: 24px;
         }
         .zoom-reset-btn:hover { background: rgba(255,255,255,0.15); color: #fff; border-color: var(--accent-cyan); }
+        @media (max-width: 600px) {
+            .zoom-reset-btn { position: static; margin: 8px auto 0; }
+        }
         .zoom-hint { text-align: center; font-size: 10px; color: var(--text-muted); margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
 
         /* Country Selector */
